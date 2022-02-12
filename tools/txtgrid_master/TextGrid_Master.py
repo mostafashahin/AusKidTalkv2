@@ -212,7 +212,7 @@ def ConcatTxtGrids(lTxtGrids, tierNames = []):
 def ParseChronTxtGrd(lLines):
     dTiers = defaultdict(lambda: [[],[],[]])
     lTiers = []
-    fST, sET = map(float,lLines.pop().split()[:2])
+    fST, fET = map(float,lLines.pop().split()[:2])
     nTiers = int(lLines.pop().split()[0])
     for i in range(nTiers):
         sTierName = lLines.pop().split()[1].strip('"')
