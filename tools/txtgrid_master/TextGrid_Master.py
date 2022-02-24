@@ -149,7 +149,7 @@ def CompareTxtGrids(sTxtGrd1, sTxtGrd2, sTier1, sTier2, sMapFile, fDevThr = DEVT
 #lTxtGrids --> is a list of textgrid file names ('txtGrid1','txtGrid2',...)
 #sOutputFile --> name of merged text grid file
 #sWavFile --> the path to the wav file of the textgrids, used to get the end time if not specified
-#aSlctdTiers --> list of lists, each list contains the requested tiers in each textgrid file in lTxtGrids [[tier1,tier2],[tier1,tier2,],...] Note: number of lists should be same as number of TxtGrid files in lTxtGrids, if empty all tiers in all textgrids will be merged
+#aSlctdTiers --> list of dict, each dict contains the requested tiers names in each textgrid file in lTxtGrids as keys and the new tier name as value [{tier1_source_name:tier1_dest_name,tier2_source_name:tier2_dest_name }, {tier1_source_name:tier1_dest_name,tier2_source_name:tier2_dest_name },...] Note: number of dicts should be same as number of TxtGrid files in lTxtGrids, if empty all tiers in all textgrids will be merged with thier original names
 #aMapper: list of tubles each with name of tier and file to map labels to other symboles [('tier1','mapper file')]
 
 def MergeTxtGrids(lTxtGrids, sOutputFile, sWavFile='', aSlctdTiers=[], aMapper = [], fST = None, fET = None):
@@ -161,7 +161,7 @@ def MergeTxtGrids(lTxtGrids, sOutputFile, sWavFile='', aSlctdTiers=[], aMapper =
         _wav_params, data = ReadWavFile(sWavFile)
         fET = _wav_params.nframes/_wav_params.framerate
     if not aSlctdTiers:
-        aSlctdTiers = [[] for i in lTxtGrids]
+        aSlctdTiers = [{} for i in lTxtGrids]
 
     dTierMapper = dict(aMapper) if aMapper else None
 
@@ -173,7 +173,7 @@ def MergeTxtGrids(lTxtGrids, sOutputFile, sWavFile='', aSlctdTiers=[], aMapper =
 
     for sTxtGrd, lSlctdTiers in zip(lTxtGrids,aSlctdTiers):
         dTiers = ParseTxtGrd(sTxtGrd)
-        lSlctdTiers = dTiers.keys() if not lSlctdTiers else lSlctdTiers
+        lSlctdTiers = {k:k for k in dTiers.keys()} if not lSlctdTiers else lSlctdTiers
         if dTierMapper:
             for sTier in lSlctdTiers:
                 if sTier in dTierMapper:
@@ -181,7 +181,7 @@ def MergeTxtGrids(lTxtGrids, sOutputFile, sWavFile='', aSlctdTiers=[], aMapper =
                         dMap = dict([l.strip().split() for l in fMap])
                     dTiers[sTier][2] = list(map(lambda x: dMap[x] if x in dMap else x,dTiers[sTier][2]))
 
-        dMergTiers.update(dict([('{}-{}'.format(i,k),v) for k,v in dTiers.items() if k in lSlctdTiers]))
+        dMergTiers.update(dict([(lSlctdTiers[k],v) for k,v in dTiers.items() if k in lSlctdTiers]))
         #dMergTiers.update(dict([('{}'.format(k),v) for k,v in dTiers.items() if k in lSlctdTiers]))
         i = i+1
 
@@ -275,7 +275,7 @@ def Merge_sil(dTiers, lSlctdTiers=[]):
     if not lSlctdTiers:
         lSlctdTiers = dTiers.keys()
     dOutTiers = dict([(x,([],[],[])) for x in dTiers.keys()])
-    sil_words = ['sil','SIL','UNK','unk','']
+    sil_words = ['sil','SIL','UNK','unk','<p:>']
     sil_symbol = 'sil'
     for Tier in dTiers.keys():
         if Tier in lSlctdTiers:
@@ -300,8 +300,8 @@ def Merge_sil(dTiers, lSlctdTiers=[]):
 Merge all consecutive non-silence intervales, useful in word tiers to create trans, if sil interval < min_sil remove it
 Add merged label tier for each selected tier
 """
-def Merge_labels(dTiers, lSlctdTiers, min_sil_dur=0.2):
-    sil_words = ['sil','SIL','UNK','unk','']
+def Merge_labels(dTiers, lSlctdTiers=[], min_sil_dur=0.2):
+    sil_words = ['sil','SIL','UNK','unk','<p:>']
     if not lSlctdTiers:
         lSlctdTiers = dTiers.keys()
     dOutTiers = copy.copy(dTiers)
