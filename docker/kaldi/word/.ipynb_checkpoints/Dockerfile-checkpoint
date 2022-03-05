@@ -1,0 +1,7 @@
+FROM kaldiasr/kaldi
+
+RUN mkdir -p /opt/kaldi/egs/akt-asr
+
+COPY M5 /opt/kaldi/egs/akt-asr
+
+WORKDIR /opt/kaldi/egs/akt-asr/M5

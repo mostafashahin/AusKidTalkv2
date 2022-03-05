@@ -235,8 +235,7 @@ def process_data(sWaveFile, data, lang = 'en-AU', spkr_ID='0001', rcrd_ID = '000
         elif asr_engine == 'kaldi':
             tierName = 'kaldi-words'
             print('send to kaldi stt.....')
-            #response, response_ph = kaldi_stt.stt_audio_file(file_path, model=kaldi_model)
-            response, response_ph = kaldi_stt.stt_audio_file(file_path) #Docker version
+            response, response_ph = kaldi_stt.stt_audio_file(file_path, model=kaldi_model)
             dTiers = kaldi_words_to_dict(response=response,shift_time=shift_time)
             if response_ph==None:
                 print('no phone align')

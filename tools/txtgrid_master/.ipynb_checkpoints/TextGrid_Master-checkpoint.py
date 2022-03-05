@@ -10,6 +10,7 @@ from difflib import SequenceMatcher
 import numpy as np
 from numba import jit
 import logging
+import pandas as pd
 
 
 OFFSET = 0.01 #sec
@@ -188,8 +189,8 @@ def MergeTxtGrids(lTxtGrids, sOutputFile, sWavFile='', aSlctdTiers=[], aMapper =
     WriteTxtGrdFromDict(sOutputFile, dMergTiers, fST, fET, sFilGab = '')
     return
 
-#TextGrids should be unoverlabed
-#TODO verify that intervals are not overlabs
+#TextGrids should be unoverlaped
+#TODO verify that intervals are not overlaped
 def ConcatTxtGrids(lTxtGrids, tierNames = []):
     if not tierNames:
         print('Get tierNames from texgrid...')
@@ -301,7 +302,7 @@ Merge all consecutive non-silence intervales, useful in word tiers to create tra
 Add merged label tier for each selected tier
 """
 def Merge_labels(dTiers, lSlctdTiers=[], min_sil_dur=0.2):
-    sil_words = ['sil','SIL','UNK','unk','<p:>']
+    sil_words = ['sil','SIL','UNK','unk','<p:>','']
     if not lSlctdTiers:
         lSlctdTiers = dTiers.keys()
     dOutTiers = copy.copy(dTiers)
@@ -363,10 +364,12 @@ def SortTxtGridDict(dTiers):
 
     return dTiers
 
-def WriteTxtGrdFromDict(sFName, dTiers, fST, fET, bReset=True, lSlctdTiers=[], sFilGab = None):
+def WriteTxtGrdFromDict(sFName, dTiers, fST, fET, bReset=True, lSlctdTiers=[], sFilGab = None, bRemoveOverlap=True):
     ValidateTextGridDict(dTiers,lSlctdTiers)
     if sFilGab != None:
         dTiers = FillGapsInTxtGridDict(dTiers,sFilGab,lSlctdTiers)
+    if bRemoveOverlap:
+        dTiers = RemoveOverlapIntervals(dTiers)
  
     fST = round(fST,4)
     fET = round(fET,4)
@@ -472,6 +475,17 @@ def Process(sTxtGrd, sWavFile, sSplitBy, sOutputDir, bTxtGrd = False, bNorm = Tr
                 fET = indxFE/_wav_params.framerate
                 WriteTxtGrdFromDict(sCrnt_txtGrd_name, dTiers, fST, fET, bReset=True, lSlctdTiers=[])
     return
+
+def RemoveOverlapIntervals(dTiers):
+    dTiers_fixed = {}
+    for tierName in dTiers:
+        df = pd.DataFrame.from_dict({'st':dTiers[tierName][0],'et':dTiers[tierName][1],'label':dTiers[tierName][2]})
+        for i in range(df.shape[0]-1):
+            if df.loc[i].et > df.loc[i+1].st:
+                df.loc[i,'et'] = df.loc[i+1].st
+        dTiers_fixed[tierName] = [df.st.values, df.et.values, df.label.values]
+    return dTiers_fixed
+
 
 def ArgParser():
     parser = argparse.ArgumentParser(description='This code split wav based on textgrid alignment', formatter_class=argparse.ArgumentDefaultsHelpFormatter)

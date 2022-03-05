@@ -37,7 +37,7 @@ def stt_audio_file(file_path,lang='en-AU', enableDiarization=True, model_str='Br
         if status['status'] in ['completed','failed']:
             break
         print("Not ready yet...")
-        time.sleep(5)
+        time.sleep(10)
     result = status['results'] if status['status']=='completed' else status['details'][0]['error']
     return result
     
