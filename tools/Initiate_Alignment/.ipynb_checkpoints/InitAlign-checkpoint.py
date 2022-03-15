@@ -95,7 +95,7 @@ dDateTimeColNames = {'task_start_end_times' : ('task1_start_time',
 """
 lTasks = ['task1','task2','task3','task4','task5']
 tTaskTimes = namedtuple('TaskTimes',lTasks)
-tPrompt = namedtuple('Prompt',['taskID','wordID','word','answerTime','cueOnset','cueOffset'])
+tPrompt = namedtuple('Prompt',['taskID','wordID','word','answerTime','cueOnset','cueOffset','retry1','retry2'])
 offset = 2 # seconds added to the end time of each task
 
 def get_args():
@@ -465,8 +465,22 @@ def GetTimeStampsSQL(iChildID):
                 cueOffset = -1
             else:
                 cueOffset = cueOffset.timestamp() - RefTime
+            
+            retry1 = data.task1_retry1_timestamp
+            if pd.isnull(retry1):
+                logger.warning('child {}: task1_retry1 timestamp is null in word {} task {}'.format(iChildID, str(iWordID), sTaskID))
+                retry1 = -1
+            else:
+                retry1 = retry1.timestamp() - RefTime
+            
+            retry2 = data.task1_retry2_timestamp
+            if pd.isnull(retry2):
+                logger.warning('child {}: task1_retry2 timestamp is null in word {} task {}'.format(iChildID, str(iWordID), sTaskID))
+                retry2 = -1
+            else:
+                retry2 = retry2.timestamp() - RefTime
 
-            prompt = tPrompt(iTaskID, iWordID, sWord, answerTime, cueOnset, cueOffset)
+            prompt = tPrompt(iTaskID, iWordID, sWord, answerTime, cueOnset, cueOffset, retry1, retry2)
             
             dTaskPrompts[iTaskID].append(prompt)
 
@@ -710,7 +724,7 @@ def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir):
         
         nFrams = int((fTaskEF-fTaskSF)/_wav_param.sampwidth)
         
-        txtgrd.WriteWaveSegment(RWav[fTaskSF:fTaskEF],_wav_param,nFrams,join(sOutDir,'{}_task{}.wav'.format(sWavFileBasename,iTaskID)))
+        txtgrd.WriteWaveSegment(RWav[fTaskSF:fTaskEF],_wav_param,nFrams,join(sOutDir,'{}_task{}.wav'.format(iChildID,iTaskID)))
         ETime = nFrams / _wav_param.framerate
 
         #Generate textgrids
@@ -720,15 +734,14 @@ def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir):
         dTiers = defaultdict(lambda: [[],[],[]])
         lPrompts = dPrompts[iTaskID]
         for p in lPrompts:
-            fTimeAdj = (p.cueOffset-p.cueOnset)/2
-            fST, fET, label = p.cueOffset - fTimeAdj, p.answerTime, p.word
+            times = [t for t in p[3:] if t != -1]  #Get the min of all repeats and max of all repeats
+            fST, fET, label = min(times), max(times), p.word
             dTiers['Prompt'][0].append(fST-fRefTime)
             dTiers['Prompt'][1].append(fET-fRefTime)
             dTiers['Prompt'][2].append(label)
         #print(dTiers)
         dTiers = txtgrd.SortTxtGridDict(dTiers)
-
-
+        
 
         #REMOVE THIS########################################
         with open(join(sOutDir,'{}_task{}.int'.format(sWavFileBasename,iTaskID)),'w') as f:
@@ -740,7 +753,7 @@ def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir):
         #dTiers = txtgrd.FillGapsInTxtGridDict(dTiers)
         #dump(dTiers,'dTier{}.jbl'.format(iTaskID))
         
-        txtgrd.WriteTxtGrdFromDict(join(sOutDir,'{}_task{}.txtgrid'.format(sWavFileBasename,iTaskID)),dTiers,0.0,ETime,sFilGab="")
+        txtgrd.WriteTxtGrdFromDict(join(sOutDir,'{}_task{}_prompt.TextGrid'.format(iChildID,iTaskID)),dTiers,0.0,ETime,sFilGab="")
 
 
     #Detect the start and end of all beep signal(s)
