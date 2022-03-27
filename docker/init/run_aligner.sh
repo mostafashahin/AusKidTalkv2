@@ -15,7 +15,6 @@ stage=0
 ls $DIR | while read direct
 do
 
-    stage=0
 
     echo "Checking Directory $direct"
 
@@ -33,32 +32,24 @@ do
 
     LOCAL_OUT_DIR=$OUT_DIR/$childID
 
-    if [ -f $LOCAL_OUT_DIR/stage ]; then
-        stage=`cat $LOCAL_OUT_DIR/stage`
-        [ -z $stage ] && stage=0
-    fi
+    echo "Starting child $childID "
 
-    echo "Starting child $childID from stage $stage"
 
-    if [ $stage -le 0 ]; then
+    mkdir -p "$LOCAL_OUT_DIR"
 
-        mkdir -p "$LOCAL_OUT_DIR"
-
-        #Convert to 16 bit
-        echo "Converting to 16 bit for beep detection"
+    #Convert to 16 bit
+    echo "Converting to 16 bit for beep detection"
+    if [ ! -f $LOCAL_OUT_DIR/primary_16b.wav ]; then
         sox "$WAV_FILE_PATH" -c 1 -b 16 "$LOCAL_OUT_DIR/primary_16b.wav" || continue
-        #TODO validate converted wav file, same duration of the original one
-        #TODO if converted file exist don't convert again
-        echo 1 > $LOCAL_OUT_DIR/stage
+    else
+        echo "Converted file exist of child $childID"
     fi
+    #TODO validate converted wav file, same duration of the original one
+    #TODO if converted file exist don't convert again
 
-    if [ $stage -le 1 ]; then
-        cd /opt/AusKidTalkv2/
-        ! $PYTHON tools/Initiate_Alignment/InitAlign.py --config_File scripts/beep.ini $childID "$LOCAL_OUT_DIR/primary_16b.wav" $LOCAL_OUT_DIR/txtgrids && mv InitAlign.log "$LOCAL_OUT_DIR" && echo 100 > $LOCAL_OUT_DIR/stage && continue
-        mv InitAlign.log "$LOCAL_OUT_DIR"
-        echo 2 > $LOCAL_OUT_DIR/stage
-    fi
-    echo $childID
+    cd /opt/AusKidTalkv2/
+    ! $PYTHON tools/Initiate_Alignment/InitAlign.py --config_File scripts/beep.ini $childID "$LOCAL_OUT_DIR/primary_16b.wav" $LOCAL_OUT_DIR/txtgrids && mv InitAlign.log "$LOCAL_OUT_DIR" && continue
+    mv InitAlign.log "$LOCAL_OUT_DIR"
 
 done
 

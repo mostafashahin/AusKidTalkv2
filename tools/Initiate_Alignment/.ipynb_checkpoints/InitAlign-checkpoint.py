@@ -666,11 +666,22 @@ def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir):
             logger.info('Child {}: task {} contains {} prompts'.format(iChildID, iTaskID, 0))
 
     logger.info('Child {}: Getting Beep times'.format(iChildID))
-    try:
-        lBeepTimes = GetBeepTimesML(sConfigFile, sWavFile)
-    except:
-        logger.error('Child {}: Error while detecting beep times'.format(iChildID))
-        raise Exception("Child {}: Error while detecting beep times".format(iChildID))
+    sBeepsFile = splitext(sWavFile)[0]+'.Beeps'
+    loadbeeps = False
+    if isfile(sBeepsFile):
+        try:
+            lBeepTimes = np.loadtxt(sBeepsFile)
+            loadbeeps = True
+        except:
+            logger.warning('Child {}: Error while loading beep times'.format(iChildID))
+            loadbeeps = False
+    if not loadbeeps:
+        try:
+            lBeepTimes = GetBeepTimesML(sConfigFile, sWavFile)
+            np.savetxt(sBeepsFile,lBeepTimes)
+        except:
+            logger.error('Child {}: Error while detecting beep times'.format(iChildID))
+            raise Exception("Child {}: Error while detecting beep times".format(iChildID))
 
     logger.info('Child {}: {} beeps detected @ times {}'.format(iChildID, len(lBeepTimes),lBeepTimes))
     #lBeepTimes = np.asarray([  10.23,  644.65, 3283.61, 4095.36])
