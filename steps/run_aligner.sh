@@ -7,7 +7,7 @@
 PYTHON=/usr/bin/python3
 
 
-DIR=/opt/AusKidTalk_Recordings/
+DIR=samples/test2/
 OUT_DIR=$DIR/annotate1
 stage=0
 
@@ -46,13 +46,9 @@ do
     fi
     #TODO validate converted wav file, same duration of the original one
     #TODO if converted file exist don't convert again
-
-    cd /opt/AusKidTalkv2/
     n=`ls $LOCAL_OUT_DIR/txtgrids/*_task?_prompt.TextGrid | wc -l`
     if [ $n -ne 3 ]; then
         ! $PYTHON tools/Initiate_Alignment/InitAlign.py --config_File scripts/beep.ini $childID "$LOCAL_OUT_DIR/primary_16b.wav" $LOCAL_OUT_DIR/txtgrids && mv InitAlign.log "$LOCAL_OUT_DIR" && continue
         mv InitAlign.log "$LOCAL_OUT_DIR"
     fi
-
 done
-

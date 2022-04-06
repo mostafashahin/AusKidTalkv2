@@ -363,7 +363,7 @@ def GetTimeStampsSQL(iChildID):
     child_task_tstamps = pdChild_Task.iloc[-1]
     
     if pd.isnull(child_task_tstamps.task1_start_time):
-        logger.error('child {}: No time stamp for the start of task 1 in file {}, Reference time can\'t set'.format(iChildID,sTaskTStampFile))
+        logger.error('child {}: No time stamp for the start of task 1, Reference time can\'t set'.format(iChildID))
 
         raise RuntimeError("Error in task timestamp file for child {}".format(iChildID))
 
@@ -414,7 +414,7 @@ def GetTimeStampsSQL(iChildID):
         #print(fTaskST,fTaskET,iTaskID)
 
         if pd.isnull(fTaskST):
-            logger.warning('child {0}: No start timestamp for task {1} in file {2}'.format(iChildID,sTaskID,sTaskTStampFile))
+            logger.warning('child {0}: No start timestamp for task {1}'.format(iChildID,sTaskID))
             fTaskST = -1
             #lTaskTimes.append((-1,-1))
         else:
@@ -466,19 +466,24 @@ def GetTimeStampsSQL(iChildID):
             else:
                 cueOffset = cueOffset.timestamp() - RefTime
             
-            retry1 = data.task1_retry1_timestamp
-            if pd.isnull(retry1):
-                logger.warning('child {}: task1_retry1 timestamp is null in word {} task {}'.format(iChildID, str(iWordID), sTaskID))
+            n_attempts = data.task1_attempt_count
+            if n_attempts ==0:
                 retry1 = -1
-            else:
-                retry1 = retry1.timestamp() - RefTime
-            
-            retry2 = data.task1_retry2_timestamp
-            if pd.isnull(retry2):
-                logger.warning('child {}: task1_retry2 timestamp is null in word {} task {}'.format(iChildID, str(iWordID), sTaskID))
                 retry2 = -1
             else:
-                retry2 = retry2.timestamp() - RefTime
+                retry1 = data.task1_retry1_timestamp
+                if pd.isnull(retry1):
+                    logger.warning('child {}: task1_retry1 timestamp is null in word {} task {}'.format(iChildID, str(iWordID), sTaskID))
+                    retry1 = -1
+                else:
+                    retry1 = retry1.timestamp() - RefTime
+
+                retry2 = data.task1_retry2_timestamp
+                if pd.isnull(retry2):
+                    logger.warning('child {}: task1_retry2 timestamp is null in word {} task {}'.format(iChildID, str(iWordID), sTaskID))
+                    retry2 = -1
+                else:
+                    retry2 = retry2.timestamp() - RefTime
 
             prompt = tPrompt(iTaskID, iWordID, sWord, answerTime, cueOnset, cueOffset, retry1, retry2)
             
