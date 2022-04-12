@@ -44,7 +44,7 @@ for spk in speakers_tiers:
     data_ibm[spk] = cm.get_valid_data(ibm_txtgrid, sPromptTier=spk,offset=offset,bMerge=True)
 
 
-    nOverlaps = defaultdict(lambda :0)
+nOverlaps = defaultdict(lambda :0)
 for r in data_prompt.iterrows():
     bAdd = True
     for spk in speakers_tiers:

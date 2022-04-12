@@ -24,8 +24,9 @@ if not os.path.isdir(dir):
     sys.exit("{} is not exist".format(dir))
 
 #tmp_dir = os.path.join(dir,'tmp')
-if not os.path.isdir(tmp_dir):
-    os.makedirs(tmp_dir, exist_ok=True)
+if os.path.isdir(tmp_dir):
+    shutil.rmtree(tmp_dir)
+os.makedirs(tmp_dir, exist_ok=True)
 
 #TODO check wav file and ibm textgrid are exist
 ibm_txtgrid  = os.path.join(dir,'{}_{}_ibm.TextGrid'.format(childID, taskID))
@@ -43,7 +44,7 @@ for spk in speakers_tiers:
     data_ibm[spk] = cm.get_valid_data(ibm_txtgrid, sPromptTier=spk,offset=offset,bMerge=True)
 
 
-    nOverlaps = defaultdict(lambda :0)
+nOverlaps = defaultdict(lambda :0)
 for r in data_prompt.iterrows():
     bAdd = True
     for spk in speakers_tiers:
