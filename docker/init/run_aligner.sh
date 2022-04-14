@@ -7,18 +7,18 @@
 PYTHON=/usr/bin/python3
 
 
-DIR=/opt/AusKidTalk_Recordings/
-OUT_DIR=$DIR/annotate1
+DIR=/opt/working/
+OUT_DIR=$DIR/processed
 stage=0
 
 #TODO list directories only
-ls $DIR | while read direct
+ls $DIR/data | while read direct
 do
 
 
     echo "Checking Directory $direct"
 
-    WAV_FILE=`ls  "$DIR/$direct/" | grep Primary`
+    WAV_FILE=`ls  "$DIR/data/$direct/" | grep Primary`
 
     [ -z "$WAV_FILE" ] && echo "ERROR: Primary wav file not exist!" && continue
 

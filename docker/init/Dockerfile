@@ -15,4 +15,6 @@ RUN git clone https://github.com/mostafashahin/AusKidTalkv2.git /opt/AusKidTalkv
 
 COPY run_aligner.sh /opt/AusKidTalkv2
 
+RUN chmod 777 /opt/AusKidTalkv2/run_aligner.sh
+
 CMD ./opt/AusKidTalk/run_aligner.sh
