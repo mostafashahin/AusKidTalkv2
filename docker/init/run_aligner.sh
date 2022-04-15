@@ -28,7 +28,7 @@ do
 
     #TODO check if childID already processed //DONE
 
-    WAV_FILE_PATH=$DIR/$direct/$WAV_FILE
+    WAV_FILE_PATH=$DIR/data/$direct/$WAV_FILE
 
     LOCAL_OUT_DIR=$OUT_DIR/$childID
 

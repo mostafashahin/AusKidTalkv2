@@ -358,7 +358,7 @@ def GetTimeStampsSQL(iChildID):
     
     #Convert string to datetime for timestamp columns
     for sColName in dDateTimeColNames['task_start_end_times']:
-        pdChild_Task[sColName] = pd.to_datetime(pdChild_Task[sColName])
+        pdChild_Task[sColName] = pd.to_datetime(pdChild_Task[sColName], format='%Y-%m-%d', errors='coerce')
 
     child_task_tstamps = pdChild_Task.iloc[-1]
     
@@ -412,6 +412,7 @@ def GetTimeStampsSQL(iChildID):
         else:
             fTaskST, fTaskET = child_task_tstamps.loc['{0}_start_time'.format(sTaskID):'{0}_end_time'.format(sTaskID)]
         #print(fTaskST,fTaskET,iTaskID)
+        
 
         if pd.isnull(fTaskST):
             logger.warning('child {0}: No start timestamp for task {1}'.format(iChildID,sTaskID))
@@ -425,6 +426,8 @@ def GetTimeStampsSQL(iChildID):
             fTaskET = -1
         else:
             fTaskET = fTaskET.timestamp() - RefTime
+        
+        logger.info('child {0} task {1} starttime {2} endtime {3}'.format(iChildID,sTaskID,fTaskST ,fTaskET))
 
 
         lTaskTimes.append((fTaskST ,fTaskET))
@@ -611,7 +614,7 @@ def GetOffsetTime(tTasks, lBeepTimes):
     nBeepTimeStamps = []
     #TODO for task1 there are 2 beeps use them for more accurate offset time estimation
     for fTaskST, fTaskET in tTasks:
-        nBeepTimeStamps.append(fTaskST) if fTaskST != -1 else Null
+        nBeepTimeStamps.append(fTaskST) if fTaskST != -1 else print('')
     lDifTimes = []
     for i in range(len(lBeepTimes)):
         for j in range(len(nBeepTimeStamps)):
@@ -693,6 +696,7 @@ def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir):
     #lBeepTimes = lBeepTimes / 100.0
     try:
         fOffsetTime = GetOffsetTime(tTasks,lBeepTimes)
+        logger.info('Child {}: time offset = {}'.format(iChildID, fOffsetTime))
     except:
         logger.error('Child {}: Error while getting offset time'.format(iChildID))
         raise Exception("Child {}: Error while getting offset time".format(iChildID))

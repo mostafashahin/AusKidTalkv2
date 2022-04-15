@@ -7,7 +7,7 @@
 PYTHON=/usr/bin/python3
 
 
-DIR=samples/test2/
+DIR=samples/test3/
 OUT_DIR=$DIR/annotate1
 stage=0
 
