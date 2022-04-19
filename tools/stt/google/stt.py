@@ -4,7 +4,7 @@ from google.cloud.storage import blob
 from pydub import AudioSegment
 from os.path import splitext, basename
 from google.oauth2 import service_account
-json_path="/home/mostafa/root/stt/google/speechtotext-314810-c6c261fa64a9.json"
+json_path="tools/stt/google/speechtotext-314810-c6c261fa64a9.json"
 my_credentials = service_account.Credentials.from_service_account_file(json_path)
 
 #TODO How to switch between acounts
