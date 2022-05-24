@@ -13,6 +13,7 @@ from collections import defaultdict
 dir = sys.argv[1]
 childID = sys.argv[2]
 taskID = sys.argv[3]
+mapper_file = sys.argv[4]
 
 lang = 'en-AU'
 asr_engine='kaldi'
@@ -70,9 +71,12 @@ for spk in speakers_tiers:
 
 textgrid_files = []
 aSelectedTiers = []
+aMapper = []
+if os.path.isfile(mapper_file):
+    aMapper = [('kaldi-words',mapper_file)]*len(speakers_tiers)
 dest_file = os.path.join(dir,'{0}_{1}_{2}.TextGrid'.format(childID, taskID, asr_engine))
 for spk in speakers_tiers:
     textgrid_files.append(os.path.join(tmp_dir,spk,'{0}_{1}_{2}_{3}_concat.TextGrid'.format(childID, taskID, asr_engine, lang)))
     aSelectedTiers.append({'kaldi-words':'{}-kaldi-words'.format(spk)})
-tgm.MergeTxtGrids(textgrid_files,dest_file,sWavFile=wav_file, aSlctdTiers=aSelectedTiers)
+tgm.MergeTxtGrids(textgrid_files,dest_file,sWavFile=wav_file, aSlctdTiers=aSelectedTiers,aMapper=aMapper)
 
