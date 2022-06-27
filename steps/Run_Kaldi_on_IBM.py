@@ -66,7 +66,7 @@ for spk in speakers_tiers:
     print('processing {}'.format(spk))
     df_data = data_ibm[spk]
     resDir = os.path.join(tmp_dir,spk)
-    cm.process_data(sWaveFile=wav_file,data=df_data, lang= lang, spkr_ID=childID, rcrd_ID=taskID, out_dir=resDir, asr_engine=asr_engine, forced_upload=False)
+    cm.process_data(sWaveFile=wav_file,data=df_data, lang= lang, spkr_ID=childID, rcrd_ID=taskID, out_dir=resDir, asr_engine=asr_engine, forced_upload=False, kaldi_suffix=taskID)
 
 
 textgrid_files = []

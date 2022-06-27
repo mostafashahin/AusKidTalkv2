@@ -169,7 +169,7 @@ def _process_data(sWaveFile, data, lang = 'en-AU', spkr_ID='0001', rcrd_ID = '00
         
     return
 
-def process_data(sWaveFile, data, lang = 'en-AU', spkr_ID='0001', rcrd_ID = '0001', out_dir='tmp', asr_engine='google', forced_upload = False, kaldi_model='model4'):
+def process_data(sWaveFile, data, lang = 'en-AU', spkr_ID='0001', rcrd_ID = '0001', out_dir='tmp', asr_engine='google', forced_upload = False, kaldi_model='model4', kaldi_suffix=''):
     #Read speech file
     #_wav_param, speech_data = tgm.ReadWavFile(sWaveFile)
     #data['start_byte'] = (data.start_time * _wav_param.framerate * _wav_param.sampwidth).astype(int)
@@ -236,7 +236,7 @@ def process_data(sWaveFile, data, lang = 'en-AU', spkr_ID='0001', rcrd_ID = '000
             tierName = 'kaldi-words'
             print('send to kaldi stt.....')
             #response, response_ph = kaldi_stt.stt_audio_file(file_path, model=kaldi_model)
-            response, response_ph = kaldi_stt.stt_audio_file(file_path) #Docker version
+            response, response_ph = kaldi_stt.stt_audio_file(file_path, suffix=kaldi_suffix) #Docker version
             dTiers = kaldi_words_to_dict(response=response,shift_time=shift_time)
             if response_ph==None:
                 print('no phone align')
