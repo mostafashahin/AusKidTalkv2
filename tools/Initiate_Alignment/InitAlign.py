@@ -34,10 +34,10 @@ logger.addHandler(ch)
 
 
 #MySQL database connection configuration
-UserName = 'unsw'
-Password = 'UNSWspeech'
-HostIP = '184.168.98.156'
-DatabaseName = 'auskidtalk_prod'
+#UserName = 'unsw'
+#Password = 'UNSWspeech'
+#HostIP = '184.168.98.156'
+#DatabaseName = 'auskidtalk_prod'
 
 #UserName = 'mostafa'
 #Password = 'Hggih;fv2881'
@@ -313,8 +313,33 @@ def GetBeepTimesML(sConfFile, sWavFile, iThrshld=98, fBeepDur = 1):
 
     return lBeepTimes
 
-def GetTimeStampsSQL(iChildID):
-
+def GetTimeStampsSQL(iChildID, sConfigFile):
+    
+    UserName = 'unsw'
+    Password = 'UNSWspeech'
+    HostIP = '184.168.98.156'
+    DatabaseName = 'auskidtalk_prod'
+    
+    #Load Values from ini file
+    if not isfile(sConfigFile):
+        raise Exception('Config file {0} is not exist'.format(sConfigFile))
+    config = configparser.ConfigParser()
+    config.read(sConfigFile)
+    try:
+        sql_conf = config['SQL']
+    except KeyError:
+        logger.error('Config File {0} must contains section [SQL]'.format(sConfigFile))
+        raise RuntimeError('Config file format error')
+    
+    if 'UserName' in sql_conf:
+        UserName = sql_conf['UserName']
+    if 'Password' in sql_conf:
+        Password = sql_conf['Password']
+    if 'HostIP' in sql_conf:
+        HostIP = sql_conf['HostIP']
+    if 'DatabaseName' in sql_conf:
+        DatabaseName = sql_conf['DatabaseName']
+        
     try:
         connector = mysql.connector.connect(user=UserName, password=Password,
                               host=HostIP,
@@ -608,7 +633,7 @@ def ParseTStampCSV(sTStampFile, sTaskTStampFile, iChildID, sWordIDsFile):
     return tTasks, dTaskPrompts
 
 
-def GetOffsetTime(tTasks, lBeepTimes):
+def _GetOffsetTime(tTasks, lBeepTimes):
     #Get number of tasks
     nTasks = len(tTasks)
     nBeepTimeStamps = []
@@ -633,6 +658,31 @@ def GetOffsetTime(tTasks, lBeepTimes):
     
     return fOffsetTime
 
+def GetOffsetTime(tTasks, lBeepTimes):
+    startTimes = [i[0] for i in tTasks]
+    diff_ts = []
+    nTasks = len(tTasks)
+    for i in range(nTasks):
+        for j in range(i+1,nTasks):
+            diff_ts.append((i,j,startTimes[j]-startTimes[i]))
+    diff_beeps = []
+    nBeeps = len(lBeepTimes)
+    for i in range(nBeeps):
+        for j in range(i+1,nBeeps):
+            diff_beeps.append((i,j,lBeepTimes[j]-lBeepTimes[i]))
+    offsets = []
+    for ib,jb,diffb in diff_beeps:
+        for it, jt, difft in diff_ts:
+            if abs(diffb - difft) < 1:
+                offsets.append(lBeepTimes[ib]-startTimes[it])
+                offsets.append(lBeepTimes[jb]-startTimes[jt])
+    if not offsets:
+        logger.error('Failed to verify beep times')
+        fOffsetTime = -1
+    else:
+        fOffsetTime = np.mean(offsets)
+    return fOffsetTime
+
 #def Segmentor(sConfigFile, sWavFile, sTimeStampCSV, sTaskTStampCSV, iChildID, sWordIDsFile, sOutDir):
 def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir):
 
@@ -655,7 +705,7 @@ def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir):
     logger.info('Child {}: Getting timestamps'.format(iChildID))
     try:
         #tTasks, dPrompts = ParseTStampCSV(sTimeStampCSV, sTaskTStampCSV, iChildID, sWordIDsFile)
-        tTasks, dPrompts = GetTimeStampsSQL(iChildID)
+        tTasks, dPrompts = GetTimeStampsSQL(iChildID, sConfigFile)
     except:
         logger.error('Child {}: Error while getting timestamps'.format(iChildID))
         raise Exception("Child {}: Error while getting timestamps".format(iChildID))
