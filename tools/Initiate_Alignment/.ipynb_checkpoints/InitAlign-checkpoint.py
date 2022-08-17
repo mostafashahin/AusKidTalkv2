@@ -108,7 +108,7 @@ def get_args():
 
     parser.add_argument("--config_File", type=str, dest='sConfigFile', help='The path to the config file contains parameters for beep detection', default='beep.ini')
     
-    parser.add_argument("--database_Name", type=str, dest=sDatabaseName, help='Name of the database. Note that this will overwrite the value in the config file')
+    parser.add_argument("--database_Name", type=str, dest='sDatabaseName', help='Name of the database. Note that this will overwrite the value in the config file')
 
     return(parser.parse_args())
     
