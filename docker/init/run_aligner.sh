@@ -11,6 +11,8 @@ DIR=/opt/working/
 OUT_DIR=$DIR/processed
 stage=0
 
+options=$1
+
 #TODO list directories only
 ls $DIR/data | while read direct
 do
@@ -50,7 +52,7 @@ do
     cd /opt/AusKidTalkv2/
     n=`ls $LOCAL_OUT_DIR/txtgrids/*_task?_prompt.TextGrid | wc -l`
     if [ $n -ne 3 ]; then
-        ! $PYTHON tools/Initiate_Alignment/InitAlign.py --config_File scripts/beep.ini $childID "$LOCAL_OUT_DIR/primary_16b.wav" $LOCAL_OUT_DIR/txtgrids && mv InitAlign.log "$LOCAL_OUT_DIR" && continue
+        ! $PYTHON tools/Initiate_Alignment/InitAlign.py --config_File scripts/config.ini $options $childID "$LOCAL_OUT_DIR/primary_16b.wav" $LOCAL_OUT_DIR/txtgrids && mv InitAlign.log "$LOCAL_OUT_DIR" && continue
         mv InitAlign.log "$LOCAL_OUT_DIR"
     fi
 

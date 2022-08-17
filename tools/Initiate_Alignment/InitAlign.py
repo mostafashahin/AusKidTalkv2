@@ -107,6 +107,8 @@ def get_args():
     parser.add_argument("sOutDir", type=str, help='Destination to save textgrid files')
 
     parser.add_argument("--config_File", type=str, dest='sConfigFile', help='The path to the config file contains parameters for beep detection', default='beep.ini')
+    
+    parser.add_argument("--database_Name", type=str, dest=sDatabaseName, help='Name of the database. Note that this will overwrite the value in the config file')
 
     return(parser.parse_args())
     
@@ -313,7 +315,7 @@ def GetBeepTimesML(sConfFile, sWavFile, iThrshld=98, fBeepDur = 1):
 
     return lBeepTimes
 
-def GetTimeStampsSQL(iChildID, sConfigFile):
+def GetTimeStampsSQL(iChildID, sConfigFile,sDatabaseName=None):
     
     UserName = 'unsw'
     Password = 'UNSWspeech'
@@ -339,6 +341,10 @@ def GetTimeStampsSQL(iChildID, sConfigFile):
         HostIP = sql_conf['HostIP']
     if 'DatabaseName' in sql_conf:
         DatabaseName = sql_conf['DatabaseName']
+    
+    #Overwrite with arg
+    if sDatabaseName:
+        DatabaseName = sDatabaseName
         
     try:
         connector = mysql.connector.connect(user=UserName, password=Password,
@@ -684,7 +690,7 @@ def GetOffsetTime(tTasks, lBeepTimes):
     return fOffsetTime
 
 #def Segmentor(sConfigFile, sWavFile, sTimeStampCSV, sTaskTStampCSV, iChildID, sWordIDsFile, sOutDir):
-def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir):
+def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir,sDatabaseName=None):
 
     #TODO get child ID from wav file
     #TODO verify naming convention of file
@@ -705,7 +711,7 @@ def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir):
     logger.info('Child {}: Getting timestamps'.format(iChildID))
     try:
         #tTasks, dPrompts = ParseTStampCSV(sTimeStampCSV, sTaskTStampCSV, iChildID, sWordIDsFile)
-        tTasks, dPrompts = GetTimeStampsSQL(iChildID, sConfigFile)
+        tTasks, dPrompts = GetTimeStampsSQL(iChildID, sConfigFile,sDatabaseName=sDatabaseName)
     except:
         logger.error('Child {}: Error while getting timestamps'.format(iChildID))
         raise Exception("Child {}: Error while getting timestamps".format(iChildID))
@@ -853,11 +859,13 @@ def main():
 
     iChildID, sWaveFile, sOutDir = args.iChildID, args.sWaveFile, args.sOutDir
 
-    sConfigFile = args.sConfigFile if 'sConfigFile' in args else 'beep.ini'
+    sConfigFile = args.sConfigFile #if 'sConfigFile' in args else 'beep.ini'
+    sDatabaseName = args.sDatabaseName
+        
     
     #try:
     #    print('trying....')
-    Segmentor(sConfigFile, sWaveFile, iChildID, sOutDir)
+    Segmentor(sConfigFile, sWaveFile, iChildID, sOutDir, sDatabaseName=sDatabaseName)
     #except:
     #    logger.error('Segmentor failed')
 
