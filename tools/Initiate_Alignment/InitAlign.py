@@ -315,6 +315,13 @@ def GetBeepTimesML(sConfFile, sWavFile, iThrshld=98, fBeepDur = 1):
 
     return lBeepTimes
 
+def date_time_list(x,fn):
+    lx = x.split(',')
+    lx = [i for i in lx if i != '0']
+    lx = [None] if not lx else lx
+    lx_t = pd.to_datetime(lx, format='%Y-%m-%d', errors='coerce')
+    return fn(lx_t)
+
 def GetTimeStampsSQL(iChildID, sConfigFile,sDatabaseName=None):
     
     UserName = 'unsw'
@@ -388,8 +395,13 @@ def GetTimeStampsSQL(iChildID, sConfigFile,sDatabaseName=None):
     pdChild_Task = pd.DataFrame.from_dict(results)
     
     #Convert string to datetime for timestamp columns
+    #for sColName in dDateTimeColNames['task_start_end_times']:
+        #pdChild_Task[sColName] = pd.to_datetime(pdChild_Task[sColName], format='%Y-%m-%d', errors='coerce')
     for sColName in dDateTimeColNames['task_start_end_times']:
-        pdChild_Task[sColName] = pd.to_datetime(pdChild_Task[sColName], format='%Y-%m-%d', errors='coerce')
+        if 'start' in sColName:
+            pdChild_Task[sColName] = pdChild_Task[sColName].apply(date_time_list,args=[min])
+        elif 'end' in sColName:
+            pdChild_Task[sColName] = pdChild_Task[sColName].apply(date_time_list,args=[max])
 
     child_task_tstamps = pdChild_Task.iloc[-1]
     
