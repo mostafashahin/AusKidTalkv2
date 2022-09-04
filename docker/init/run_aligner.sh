@@ -53,7 +53,8 @@ do
     n=`ls $LOCAL_OUT_DIR/txtgrids/*_task?_prompt.TextGrid | wc -l`
     if [ $n -ne 3 ]; then
         ! $PYTHON tools/Initiate_Alignment/InitAlign.py --config_File scripts/config.ini $options $childID "$LOCAL_OUT_DIR/primary_16b.wav" $LOCAL_OUT_DIR/txtgrids && mv InitAlign.log "$LOCAL_OUT_DIR" && continue
-        mv InitAlign.log "$LOCAL_OUT_DIR"
+	cat InitAlign.log >> "$LOCAL_OUT_DIR"/InitAlign.log
+	rm InitAlign.log
     fi
 
 done
