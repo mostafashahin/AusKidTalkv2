@@ -15,6 +15,7 @@ from os.path import join, isfile
 dir = sys.argv[1]
 childID = sys.argv[2]
 taskID = sys.argv[3]
+modelName = sys.argv[4]
 
 if not os.path.isdir(dir):
     #print("{} is not exist".format(dir))
@@ -36,7 +37,7 @@ if isfile(json_file):
     with open(json_file) as fjson:
         results = json.load(fjson)
 else:
-    results = ibm_stt.stt_audio_file(wav_file,model_str='BroadbandModel')
+    results = ibm_stt.stt_audio_file_wav(wav_file,model_str=modelName)
     with open(json_file,'w') as fjson:
         json.dump(results, fjson)
 
