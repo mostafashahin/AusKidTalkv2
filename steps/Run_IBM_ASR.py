@@ -15,7 +15,7 @@ from os.path import join, isfile
 dir = sys.argv[1]
 childID = sys.argv[2]
 taskID = sys.argv[3]
-modelName = sys.argv[4]
+modelNameString = sys.argv[4]
 
 if not os.path.isdir(dir):
     #print("{} is not exist".format(dir))
@@ -31,16 +31,33 @@ wav_file = os.path.join(dir,'{}_{}.wav'.format(childID, taskID))
 json_file = os.path.join(dir,'{}_{}_ibm.json'.format(childID, taskID))
 txtgrid_file = os.path.join(dir,'{}_{}_ibm.TextGrid'.format(childID, taskID))
 
+modelNames = modelNameString.split()
+masterModelName = modelNames[0]
+
 #Get duration
 dur_in_secs = librosa.get_duration(filename=wav_file)
+bThreeSpeaker = False
 if isfile(json_file):
     with open(json_file) as fjson:
         results = json.load(fjson)
 else:
-    results = ibm_stt.stt_audio_file_wav(wav_file,model_str=modelName)
-    with open(json_file,'w') as fjson:
-        json.dump(results, fjson)
-
+    lResults={}
+    for modelName in modelNames:
+        if not bThreeSpeaker:
+            results = ibm_stt.stt_audio_file_wav(wav_file,model_str=modelName)
+            n_spkrs = pd.DataFrame.from_records(results[0]['speaker_labels']).speaker.unique().shape[0]
+            json_file_model = os.path.join(dir,'{}_{}_{}_ibm.json'.format(childID, taskID, modelName))
+            with open(json_file_model,'w') as fjson:
+                json.dump(results, fjson)
+            lResults[modelName] = results
+            if n_spkrs == 3:
+                bThreeSpeaker = True
+                with open(json_file,'w') as fjson:
+                    json.dump(results, fjson)
+    if not bThreeSpeaker:
+        results = lResults[masterModelName]
+        with open(json_file,'w') as fjson:
+            json.dump(results, fjson)
 
 df_spkrs = pd.DataFrame.from_records(results[0]['speaker_labels'])
 
