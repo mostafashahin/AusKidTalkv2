@@ -398,10 +398,10 @@ def GetTimeStampsSQL(iChildID, sConfigFile,sDatabaseName=None):
     #for sColName in dDateTimeColNames['task_start_end_times']:
         #pdChild_Task[sColName] = pd.to_datetime(pdChild_Task[sColName], format='%Y-%m-%d', errors='coerce')
     for sColName in dDateTimeColNames['task_start_end_times']:
-    if 'start' in sColName:
-        pdChild_Task[sColName] = pdChild_Task[sColName].apply(date_time_list,args=[min])
-    elif 'end' in sColName:
-        pdChild_Task[sColName] = pdChild_Task[sColName].apply(date_time_list,args=[max])
+        if 'start' in sColName:
+            pdChild_Task[sColName] = pdChild_Task[sColName].apply(date_time_list,args=[min])
+        elif 'end' in sColName:
+            pdChild_Task[sColName] = pdChild_Task[sColName].apply(date_time_list,args=[max])
 
     child_task_tstamps = pdChild_Task.iloc[-1]
     

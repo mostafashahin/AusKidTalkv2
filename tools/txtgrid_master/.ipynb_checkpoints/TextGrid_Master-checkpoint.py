@@ -388,7 +388,7 @@ def WriteTxtGrdFromDict(sFName, dTiers, fST, fET, bReset=True, lSlctdTiers=[], s
         lSTs = [round(i,4) for i in lSTs]
         lETs = [round(i,4) for i in lETs]
         iSindx = bisect.bisect_left(lSTs, fST)
-        iEindx = bisect.bisect(lETs, fET)
+        iEindx = bisect.bisect(lETs, fET)+1
         #print(iSindx,iEindx)
         #Adjust start and end times
         #print(lSTs,lETs)
