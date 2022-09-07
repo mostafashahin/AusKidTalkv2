@@ -42,7 +42,9 @@ if isfile(json_file):
         results = json.load(fjson)
 else:
     lResults={}
+    print('child: {} task: {} diarise modelString {}'.format(childID, taskID, modelNameString))
     for modelName in modelNames:
+        print('child: {} task: {} diarise using model {}'.format(childID, taskID, modelName))
         if not bThreeSpeaker:
             results = ibm_stt.stt_audio_file_wav(wav_file,model_str=modelName)
             n_spkrs = pd.DataFrame.from_records(results[0]['speaker_labels']).speaker.unique().shape[0]
@@ -50,6 +52,7 @@ else:
             with open(json_file_model,'w') as fjson:
                 json.dump(results, fjson)
             lResults[modelName] = results
+            print('child: {} task: {} model {} got {} speakers'.format(childID, taskID, modelName, n_spkrs))
             if n_spkrs == 3:
                 bThreeSpeaker = True
                 with open(json_file,'w') as fjson:

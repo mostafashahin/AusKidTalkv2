@@ -64,6 +64,7 @@ def stt_audio_file_wav_(file_path,lang='en-AU', enableDiarization=True, model_st
     result = status['results'] if status['status']=='completed' else status['details'][0]['error']
     return result
 
+#TODO add sampling rate as an argument
 
 def stt_audio_file_wav(file_path, format='wav', lang='en-AU', enableDiarization=True, model_str='BroadbandModel'):
     speech_to_text = SpeechToTextV1(authenticator=authenticator)
