@@ -55,7 +55,7 @@ fi
 lattice-to-ctm-conf --decode-mbr=true --frame-shift=0.03 --inv-acoustic-scale=$lmscal ark:$model/decode_data_$rand/ali.wrd.lat - 2>/dev/null | int2sym.pl -f 5 $lm_graph/words.txt > $basename-child-tedlium-$rand 2>/dev/null
 
 if $align_ph; then
-	lattice-to-phone-lattice $model/final.mdl ark:$model/decode_data_$rand/ali.wrd.lat ark:- 2>/dev/null | lattice-to-ctm-conf --decode-mbr=true --frame-shift=0.03 --inv-acoustic-scale=10.0 ark:- - 2>/dev/null | int2sym.pl -f 5 $lm_graph/phones_noP.txt > phone.ali 2>/dev/null
+	lattice-to-phone-lattice $model/final.mdl ark:$model/decode_data_$rand/ali.wrd.lat ark:- 2>/dev/null | lattice-to-ctm-conf --decode-mbr=true --frame-shift=0.03 --inv-acoustic-scale=10.0 ark:- - 2>/dev/null | int2sym.pl -f 5 $model/phones_noP.txt > phone.ali 2>/dev/null
 fi
 if $clean; then
 	rm -r $wrk_dir
