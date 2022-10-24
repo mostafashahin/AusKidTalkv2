@@ -315,6 +315,7 @@ def GetBeepTimesML(sConfFile, sWavFile, iThrshld=98, fBeepDur = 1):
 
     return lBeepTimes
 
+#To Handle multiple timestamps in same column
 def date_time_list(x,fn):
     lx = x.split(',')
     lx = [i for i in lx if i != '0']
@@ -469,11 +470,26 @@ def GetTimeStampsSQL(iChildID, sConfigFile,sDatabaseName=None):
             fTaskET = -1
         else:
             fTaskET = fTaskET.timestamp() - RefTime
+        if sTaskID == 'task1':
+            if pd.isnull(fTaskET_p1):
+                fTaskET_p1 = -1
+                #lTaskTimes.append((-1,-1))
+            else:
+                fTaskET_p1 = fTaskET_p1.timestamp() - RefTime
+
+            if pd.isnull(fTaskST_p2):
+                fTaskST_p2 = -1
+            else:
+                fTaskST_p2 = fTaskST_p2.timestamp() - RefTime
+        
         
         logger.info('child {0} task {1} starttime {2} endtime {3}'.format(iChildID,sTaskID,fTaskST ,fTaskET))
+        
 
-
-        lTaskTimes.append((fTaskST ,fTaskET))
+        if sTaskID=='task1':
+            lTaskTimes.append((fTaskST,fTaskET_p1, fTaskST_p2, fTaskET))
+        else:
+            lTaskTimes.append((fTaskST ,fTaskET))
 
         pdTask = pdChild[pdChild.task_id==iTaskID] ##CHANGE if COL CHANGED
         
@@ -678,8 +694,10 @@ def _GetOffsetTime(tTasks, lBeepTimes):
 
 def GetOffsetTime(tTasks, lBeepTimes):
     startTimes = [i[0] for i in tTasks]
+    startTimes.append(tTasks[0][2]) #Adding starttime of the second part of task1 fTaskST_p2
+    startTimes.sort()
     diff_ts = []
-    nTasks = len(tTasks)
+    nTasks = len(startTimes)
     for i in range(nTasks):
         for j in range(i+1,nTasks):
             diff_ts.append((i,j,startTimes[j]-startTimes[i]))
@@ -696,9 +714,10 @@ def GetOffsetTime(tTasks, lBeepTimes):
                 offsets.append(lBeepTimes[jb]-startTimes[jt])
     if not offsets:
         logger.error('Failed to verify beep times')
-        fOffsetTime = -1
+        fOffsetTime = -555555 #Cause it could be negative to some extend
     else:
         fOffsetTime = np.mean(offsets)
+    
     return fOffsetTime
 
 #def Segmentor(sConfigFile, sWavFile, sTimeStampCSV, sTaskTStampCSV, iChildID, sWordIDsFile, sOutDir):
@@ -770,7 +789,7 @@ def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir,sDatabaseName=None):
         raise Exception("Child {}: Error while getting offset time".format(iChildID))
 
 
-    if fOffsetTime == -1:
+    if fOffsetTime == -555555:
         raise Exception("child {}: session speech File {} not exist".format(iChildID,sWavFile))
      
     logger.info('Child {}: offset time {}'.format(iChildID,fOffsetTime))
@@ -786,7 +805,10 @@ def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir,sDatabaseName=None):
 
         logger.info('Child {}: Annotating task {}'.format(iChildID,iTaskID))
 
-        fTaskST,fTaskET = tTasks[i]
+        if len(tTasks[i]) == 4:
+            fTaskST,_,_,fTaskET = tTasks[i]
+        else:
+            fTaskST,fTaskET = tTasks[i]
         fRefTime = fTaskST 
         #Fix missing start and end times of tasks, if start missing use end of previous task, if end time missing use start time of next task
         if fTaskST == -1:
@@ -801,6 +823,10 @@ def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir,sDatabaseName=None):
                 fTaskET = tTasks[i+1][0]
         
         fTaskST += fOffsetTime
+        if fTaskST < 0:
+            fTaskST = 0
+            fRefTime = -fOffsetTime
+        #fTaskST = 0 if fTaskST < 0 else fTaskST
         fTaskET += fOffsetTime
         
         fTaskSF = int(fTaskST*_wav_param.framerate*_wav_param.sampwidth)
