@@ -709,7 +709,7 @@ def GetOffsetTime(tTasks, lBeepTimes):
     offsets = []
     for ib,jb,diffb in diff_beeps:
         for it, jt, difft in diff_ts:
-            if abs(diffb - difft) < 1:
+            if abs(diffb - difft) < 2:
                 offsets.append(lBeepTimes[ib]-startTimes[it])
                 offsets.append(lBeepTimes[jb]-startTimes[jt])
     if not offsets:
@@ -825,7 +825,7 @@ def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir,sDatabaseName=None):
         fTaskST += fOffsetTime
         if fTaskST < 0:
             fTaskST = 0
-            fRefTime = fOffsetTime
+            fRefTime = -fOffsetTime
         #fTaskST = 0 if fTaskST < 0 else fTaskST
         fTaskET += fOffsetTime
         

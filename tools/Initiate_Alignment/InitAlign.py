@@ -709,7 +709,7 @@ def GetOffsetTime(tTasks, lBeepTimes):
     offsets = []
     for ib,jb,diffb in diff_beeps:
         for it, jt, difft in diff_ts:
-            if abs(diffb - difft) < 1:
+            if abs(diffb - difft) < 2:
                 offsets.append(lBeepTimes[ib]-startTimes[it])
                 offsets.append(lBeepTimes[jb]-startTimes[jt])
     if not offsets:
