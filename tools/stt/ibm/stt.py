@@ -9,7 +9,8 @@ from ibm_watson.websocket import RecognizeCallback, AudioSource
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 
 url='https://api.au-syd.speech-to-text.watson.cloud.ibm.com'
-api_key="AMfX-GrTrD_1oevhMnpShpT4WMOoJniEgYeF1Jz8q9vK"
+#api_key="AMfX-GrTrD_1oevhMnpShpT4WMOoJniEgYeF1Jz8q9vK"
+api_key="IewfRcy6UeSuXZTiGCvYwST2Jsc0O3gCvQpg90uR4XfK"
 authenticator = IAMAuthenticator(apikey=api_key)
 
 def convert_to_flac(audio_file, format='wav'):

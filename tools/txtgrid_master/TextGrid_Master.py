@@ -53,11 +53,11 @@ def SplitWav(sWavFile, st, et, sOutName):
 
 
 def ParseTextTxtGrid(lLines):
-    pItem = re.compile('(?<=item \[)([0-9]*)(?=\]:)')
+    pItem = re.compile('(?<=item \[)([0-9]+)(?=\]:)')
     pTierSize = re.compile('(?<=intervals: size = )([0-9]*)')
     pTierName = re.compile('(?<=name = ")(.*)(?=")')
-    pST = re.compile('(?<=xmin = )([0-9\.]*)')
-    pET = re.compile('(?<=xmax = )([0-9\.]*)')
+    pST = re.compile('(?<=xmin = )([-0-9\.]*)')
+    pET = re.compile('(?<=xmax = )([-0-9\.]*)')
     pLabel = re.compile('(?<=text = ")(.*)(?=")')
 
     dTiers = defaultdict(lambda: [[],[],[]])
@@ -272,11 +272,13 @@ def ValidateTextGridDict(dTiers, lSlctdTiers=[]):
 Merge all consecutive silence intervales, with labels ['sil','SIL','UNK','unk','']
 Return same number of Tiers with selected tiers modified
 """
-def Merge_sil(dTiers, lSlctdTiers=[]):
+def Merge_sil(dTiers, lSlctdTiers=[], lSilWords=[], Replace=False):
     if not lSlctdTiers:
         lSlctdTiers = dTiers.keys()
     dOutTiers = dict([(x,([],[],[])) for x in dTiers.keys()])
     sil_words = ['sil','SIL','UNK','unk','<p:>']
+    if lSilWords:
+        sil_words = lSilWords if Replace else sil_words+lSilWords
     sil_symbol = 'sil'
     for Tier in dTiers.keys():
         if Tier in lSlctdTiers:
@@ -486,6 +488,16 @@ def RemoveOverlapIntervals(dTiers):
         dTiers_fixed[tierName] = [df.st.values, df.et.values, df.label.values]
     return dTiers_fixed
 
+def dictToDataFrame(dTiers):
+    df_dict = {'from':[],'to':[],'label':[],'tier':[]}
+    for tier_name in dTiers:
+        nRecords = len(dTiers[tier_name][0])
+        df_dict['from'] = df_dict['from'] + dTiers[tier_name][0]
+        df_dict['to'] = df_dict['to'] + dTiers[tier_name][1]
+        df_dict['label'] = df_dict['label'] + dTiers[tier_name][2]
+        df_dict['tier'] = df_dict['tier'] + [tier_name]*nRecords
+    df_tiers = pd.DataFrame.from_dict(df_dict)
+    return(df_tiers)
 
 def ArgParser():
     parser = argparse.ArgumentParser(description='This code split wav based on textgrid alignment', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
