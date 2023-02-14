@@ -55,11 +55,15 @@ def SplitWav(sWavFile, st, et, sOutName):
 def ParseTextTxtGrid(lLines):
     pItem = re.compile('(?<=item \[)([0-9]+)(?=\]:)')
     pTierSize = re.compile('(?<=intervals: size = )([0-9]*)')
+    pPointSize = re.compile('(?<=points: size = )([0-9]*)')
     pTierName = re.compile('(?<=name = ")(.*)(?=")')
     pST = re.compile('(?<=xmin = )([-0-9\.]*)')
     pET = re.compile('(?<=xmax = )([-0-9\.]*)')
+    pPNum = re.compile('(?<=number = )([-0-9\.]*)')
+    pPMark = re.compile('(?<=mark = ")(.*)(?=")')
     pLabel = re.compile('(?<=text = ")(.*)(?=")')
-
+    pTierType = re.compile('(?<=class = ")(.*)(?=")')
+    
     dTiers = defaultdict(lambda: [[],[],[]])
     lTiers = []
     sCurLine = ''
@@ -79,6 +83,16 @@ def ParseTextTxtGrid(lLines):
                 return
             _match = pItem.findall(sCurLine)
         iItemIndx = _match[0]
+        
+        _match = None
+        while not _match:
+            try:
+                sCurLine = lLines.pop()
+            except IndexError:
+                print('Bad format')
+
+            _match = pTierType.findall(sCurLine)
+        sCTierType= _match[0]
         _match = None
         while not _match:
             try:
@@ -88,23 +102,43 @@ def ParseTextTxtGrid(lLines):
                 return
             _match = pTierName.findall(sCurLine)
         sCTierName = _match[0]
-        _match = None
-        while not _match:
-            try:
+        if sCTierType == 'IntervalTier':
+            _match = None
+            while not _match:
+                try:
+                    sCurLine = lLines.pop()
+                except IndexError:
+                    print('Bad format')
+                    return
+                _match = pTierSize.findall(sCurLine)
+            nIntervals = int(_match[0])
+            for i in range(nIntervals):
                 sCurLine = lLines.pop()
-            except IndexError:
-                print('Bad format')
-                return
-            _match = pTierSize.findall(sCurLine)
-        nIntervals = int(_match[0])
-        for i in range(nIntervals):
-            sCurLine = lLines.pop()
-            fST = float(pST.findall(lLines.pop())[0])
-            fET = float(pET.findall(lLines.pop())[0])
-            sLabel = pLabel.findall(lLines.pop())[0]
-            dTiers[sCTierName][0].append(fST)
-            dTiers[sCTierName][1].append(fET)
-            dTiers[sCTierName][2].append(sLabel)
+                fST = float(pST.findall(lLines.pop())[0])
+                fET = float(pET.findall(lLines.pop())[0])
+                sLabel = pLabel.findall(lLines.pop())[0]
+                dTiers[sCTierName][0].append(fST)
+                dTiers[sCTierName][1].append(fET)
+                dTiers[sCTierName][2].append(sLabel)
+        elif sCTierType == 'TextTier':
+            _match=None
+            while not _match:
+                try:
+                    sCurLine = lLines.pop()
+                except IndexError:
+                    print('Bad format')
+
+                _match = pPointSize.findall(sCurLine)
+            nPoints = int(_match[0])
+            
+            for i in range(nPoints):
+                sCurLine = lLines.pop()
+                fST = float(pPNum.findall(lLines.pop())[0])
+                fET = fST
+                sLabel = pPMark.findall(lLines.pop())[0]
+                dTiers[sCTierName][0].append(fST)
+                dTiers[sCTierName][1].append(fET)
+                dTiers[sCTierName][2].append(sLabel)
     return dTiers
 
 def CompareTxtGrids(sTxtGrd1, sTxtGrd2, sTier1, sTier2, sMapFile, fDevThr = DEVTH):
@@ -212,18 +246,22 @@ def ConcatTxtGrids(lTxtGrids, tierNames = []):
 
 def ParseChronTxtGrd(lLines):
     dTiers = defaultdict(lambda: [[],[],[]])
-    lTiers = []
+    dTiers_type = {}
     fST, fET = map(float,lLines.pop().split()[:2])
     nTiers = int(lLines.pop().split()[0])
     for i in range(nTiers):
-        sTierName = lLines.pop().split()[1].strip('"')
-        lTiers.append(sTierName)
+        sTierType, sTierName = [x.strip('"') for x in lLines.pop().split()[:2]]
+        dTiers_type[sTierName] = sTierType
     while lLines:
         sLine = lLines.pop()
         if sLine and sLine[0] == '!':
+            sCTierName = sLine.split()[1].strip(':')
             lLine = lLines.pop().split()
-            sCTierName = lTiers[int(lLine[0])-1]
-            fST, fET = map(float,lLine[1:])
+            #sCTierName = lTiers[int(lLine[0])-1]
+            if dTiers_type[sCTierName] == "IntervalTier":
+                fST, fET = map(float,lLine[1:])
+            elif dTiers_type[sCTierName] == "TextTier":
+                fST = fET = float(lLine[1])
             sLabel = lLines.pop().strip('"')
             dTiers[sCTierName][0].append(fST)
             dTiers[sCTierName][1].append(fET)
