@@ -35,11 +35,11 @@ def _computeEval(df_prompt: pd.DataFrame, df_GT: pd.DataFrame, df_AN: pd.DataFra
                 if not AN_find.empty:
                     GT_AN_hit += 1
                     hit_intervals.append((GT_find, AN_find))
-                else:                    
+                else:
                     AN_Miss += 1
             elif not AN_find.empty:
                 AN_Extra += 1
-            else:                
+            else:
                 Miss_Target += 1
         else:
             targets_c = ['one','two','three','four','five','six','seven','eight','nine','ten']
@@ -50,13 +50,13 @@ def _computeEval(df_prompt: pd.DataFrame, df_GT: pd.DataFrame, df_AN: pd.DataFra
                     if not AN_find.empty:
                         GT_AN_hit += 1
                         hit_intervals.append((GT_find, AN_find))
-                    else:                        
+                    else:
                         AN_Miss += 1
                 elif not AN_find.empty:
                     AN_Extra += 1
                 else:
                     Miss_Target += 1
-    
+
     return (GT_AN_hit, AN_Extra, AN_Miss, Miss_Target, hit_intervals)
 
 
@@ -86,33 +86,35 @@ def _computeOverlap(hit_intervals: List[Tuple[pd.DataFrame,pd.DataFrame]]) -> Li
     return Overlap_intervals
 
 
-def main():
-    _, GT_TxtGridPath, AN_TxtGridPath = argv
-    
-    logName = splitext(AN_TxtGridPath)[0]+'.log.csv'
-    
+def scoreIt(GT_TxtGridPath, AN_TxtGridPath):
+    logName = splitext(AN_TxtGridPath)[0] + '.log.csv'
+
     df_GT_prompts = _loadTextGrid(GT_TxtGridPath, 'Prompt')
     df_GT = _loadTextGrid(GT_TxtGridPath, 'Final-wrd')
     df_AN = _loadTextGrid(AN_TxtGridPath, 'hu-wrd')
-    
+
     GT_AN_hit, AN_Extra, AN_Miss, Miss_Target, hit_intervals = _computeEval(df_GT_prompts, df_GT, df_AN)
-    
-    foundTargetsRatio = GT_AN_hit/(GT_AN_hit+AN_Miss)
-    
+
+    foundTargetsRatio = GT_AN_hit / (GT_AN_hit + AN_Miss)
+
     OR = _computeOverlap(hit_intervals)
-    
-    
+
     df_OR = pd.DataFrame.from_records(OR, columns=['target', 'GT-Start_Time', 'GT-End_Time', 'AN-Start_Time', 'AN-End_Time', 'Overlap'])
-    df_OR = df_OR[df_OR.Overlap !=0.0]
-    
+    df_OR = df_OR[df_OR.Overlap != 0.0]
+
     df_OR.to_csv(logName, index=False)
-    
+
     OR_mean, OR_median, OR_max, OR_min = df_OR.Overlap.mean(), df_OR.Overlap.median(), df_OR.Overlap.max(), df_OR.Overlap.min()
-    
+
+    return (OR_mean, OR_median, OR_max, OR_min, foundTargetsRatio)
+
+def main():
+    _, GT_TxtGridPath, AN_TxtGridPath = argv
+
+    OR_mean, OR_median, OR_max, OR_min, foundTargetsRatio = scoreIt(GT_TxtGridPath, AN_TxtGridPath)
     print(f'{foundTargetsRatio:0.2}, {OR_mean:0.2}, {OR_median:0.2}, {OR_max:0.2}, {OR_min:0.2}')
-    
+
     return
 
 if __name__ == '__main__':
     main()
-    

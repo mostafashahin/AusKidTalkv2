@@ -3,7 +3,7 @@ matplotlib
 simplejson
 scipy
 numpy
-hmmlearn
+#hmmlearn
 eyeD3
 pydub
 scikit_learn
