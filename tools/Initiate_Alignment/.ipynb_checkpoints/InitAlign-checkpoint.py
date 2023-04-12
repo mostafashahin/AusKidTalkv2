@@ -11,6 +11,7 @@ from joblib import dump, load
 from scipy.signal import find_peaks
 from tqdm import tqdm
 import mysql.connector
+import fire
 
 sys.path.insert(0,'tools')
 import pyAudioAnalysis.ShortTermFeatures as sF
@@ -323,7 +324,7 @@ def date_time_list(x,fn):
     lx_t = pd.to_datetime(lx, format='%Y-%m-%d', errors='coerce')
     return fn(lx_t)
 
-def GetTimeStampsSQL(iChildID, sConfigFile,sDatabaseName=None):
+def GetTimeStampsSQL(iChildID, sConfigFile, sDatabaseName=None, sHostIP=None, sUserName=None, sPassword=None):
     
     UserName = 'unsw'
     Password = 'UNSWspeech'
@@ -353,7 +354,13 @@ def GetTimeStampsSQL(iChildID, sConfigFile,sDatabaseName=None):
     #Overwrite with arg
     if sDatabaseName:
         DatabaseName = sDatabaseName
-        
+    if sHostIP:
+        HostIP = sHostIP
+    if sUserName:
+        UserName = sUserName
+    if sPassword:
+        Password = sPassword
+    print(HostIP)   
     try:
         connector = mysql.connector.connect(user=UserName, password=Password,
                               host=HostIP,
@@ -721,7 +728,7 @@ def GetOffsetTime(tTasks, lBeepTimes):
     return fOffsetTime
 
 #def Segmentor(sConfigFile, sWavFile, sTimeStampCSV, sTaskTStampCSV, iChildID, sWordIDsFile, sOutDir):
-def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir,sDatabaseName=None):
+def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir,sDatabaseName='auskidtalk_prod', HostIP='184.168.98.156', UserName='unsw', Password='UNSWspeech'):
 
     #TODO get child ID from wav file
     #TODO verify naming convention of file
@@ -742,7 +749,7 @@ def Segmentor(sConfigFile, sWavFile, iChildID, sOutDir,sDatabaseName=None):
     logger.info('Child {}: Getting timestamps'.format(iChildID))
     try:
         #tTasks, dPrompts = ParseTStampCSV(sTimeStampCSV, sTaskTStampCSV, iChildID, sWordIDsFile)
-        tTasks, dPrompts = GetTimeStampsSQL(iChildID, sConfigFile,sDatabaseName=sDatabaseName)
+        tTasks, dPrompts = GetTimeStampsSQL(iChildID, sConfigFile,sDatabaseName=sDatabaseName, sHostIP=HostIP, sUserName=UserName, sPassword=Password)
     except:
         logger.error('Child {}: Error while getting timestamps'.format(iChildID))
         raise Exception("Child {}: Error while getting timestamps".format(iChildID))
@@ -909,4 +916,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    #main()
+    fire.Fire(Segmentor)

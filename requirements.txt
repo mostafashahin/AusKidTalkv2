@@ -20,3 +20,4 @@ google-cloud
 google-cloud-speech
 google-cloud-storage
 boto3
+fire
