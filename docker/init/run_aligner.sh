@@ -52,7 +52,7 @@ do
     cd /opt/AusKidTalkv2/
     n=`ls $LOCAL_OUT_DIR/txtgrids/*_task?_prompt.TextGrid | wc -l`
     if [ $n -ne 3 ]; then
-        ! $PYTHON tools/Initiate_Alignment/InitAlign.py scripts/config.ini $childID "$LOCAL_OUT_DIR/primary_16b.wav" $LOCAL_OUT_DIR/txtgrids $options && mv InitAlign.log "$LOCAL_OUT_DIR" && continue
+        ! $PYTHON tools/Initiate_Alignment/InitAlign.py scripts/config.ini "$LOCAL_OUT_DIR/primary_16b.wav" $childID $LOCAL_OUT_DIR/txtgrids $options && mv InitAlign.log "$LOCAL_OUT_DIR" && continue
 	cat InitAlign.log >> "$LOCAL_OUT_DIR"/InitAlign.log
 	rm InitAlign.log
     fi
