@@ -321,7 +321,7 @@ def date_time_list(x,fn):
     lx = x.split(',')
     lx = [i for i in lx if i != '0']
     lx = [None] if not lx else lx
-    lx_t = pd.to_datetime(lx, format='%Y-%m-%d', errors='coerce')
+    lx_t = pd.to_datetime(lx, format='%Y-%m-%d %H:%M:%S.%f', errors='coerce')
     return fn(lx_t)
 
 def GetTimeStampsSQL(iChildID, sConfigFile, sDatabaseName=None, sHostIP=None, sUserName=None, sPassword=None):
